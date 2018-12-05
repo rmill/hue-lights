@@ -1,0 +1,11 @@
+<div *ngIf='selectedGameId'>
+  <div class="content-text">SIGN IN</div>
+  <form #loginForm="ngForm" (ngSubmit)="login()">
+    <input [(ngModel)]="userName" [class.input-error]="userNameError" name="userName" type="text" placeholder="USER NAME">
+    <div *ngIf="errorMsg" class="content-error">{{ errorMsg }}</div>
+    <button type="submit" [disabled]="loggingIn" class="submit">
+      <span *ngIf="!loggingIn">SUBMIT</span>
+      <i *ngIf="loggingIn" class="fa fa-spinner fa-spin"></i>
+    </button>
+  </form>
+</div>
