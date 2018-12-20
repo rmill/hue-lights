@@ -1,7 +1,6 @@
 <mat-list>
-  <mat-list-item *ngFor="let light of lights; last as last" (click)="viewLight(light)">
-    <mat-icon mat-list-icon (click)="togglePower(light)">power_settings_new</mat-icon>
+  <mat-list-item *ngFor="let light of lights" (click)="viewLight(light)">
+    <mat-icon mat-list-icon (click)="togglePower(light)" [class.on]="light.on">power_settings_new</mat-icon>
     <span>{{light.name}}</span>
-    <mat-divider [inset]="true" *ngIf="!last"></mat-divider>
   </mat-list-item>
 </mat-list>

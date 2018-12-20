@@ -1,16 +1,21 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatListModule } from '@angular/material/list';
+import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule, Routes } from '@angular/router';
 
 import { AppComponent } from './app.component';
 import { LightListComponent } from './light-list/light-list.component';
 import { LightViewComponent } from './light-view/light-view.component';
-import { HueService } from './shared/service/hue.service';
+import { HueService } from './shared/services/hue.service';
 
 const appRoutes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'lights' },
   { path: 'lights', component: LightListComponent },
-  { path: 'lights/???', component: LightViewComponent }
+  { path: 'lights/:id', component: LightViewComponent }
 ];
 
 @NgModule({
@@ -21,7 +26,12 @@ const appRoutes: Routes = [
   ],
   imports: [
     BrowserModule,
-    RouterModule.forRoot(appRoutes)
+    BrowserAnimationsModule, // All material imports must be AFTER the browser module
+    RouterModule.forRoot(appRoutes),
+    MatButtonModule,
+    MatListModule,
+    MatIconModule,
+    MatToolbarModule
   ],
   providers: [
     HueService

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router'
 
-import { HueService } from '../shares/service/hue.service'
+import { Light, HueService } from '../shared/services/hue.service'
 
 @Component({
   selector: 'hue-lights-list',
@@ -11,17 +12,18 @@ export class LightListComponent {
 
   private lights: Light[];
 
-  constructor(private HueService hue) {}
+  constructor(private hue: HueService, private router: Router) {}
 
   ngOnInit() {
     this.hue.getLights().then(lights => this.lights = lights)
   }
 
   togglePower(light: Light) {
-    // this.hue.updateLight({ on: light.on })
+    light.on = !light.on;
+    this.hue.updateLight({ on: light.on })
   }
 
   viewLight(light: Light) {
-    // View the light
+    this.router.navigate([`lights/${light.id}`])
   }
 }

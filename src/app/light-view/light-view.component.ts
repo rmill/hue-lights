@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 
-import { HueService } from '../shared/service/hue.service';
+import { HueService } from '../shared/services/hue.service';
 
 @Component({
   selector: 'hue-lights-view',
