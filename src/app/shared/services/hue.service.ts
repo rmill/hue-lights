@@ -3,6 +3,10 @@ import { Injectable } from '@angular/core';
 @Injectable()
 export class HueService {
 
+  getLight(lightId: string) {
+    return Promise.resolve({ id: '1', name: "light 1", on: true })
+  }
+
   getLights() {
     return Promise.resolve([
       { id: '1', name: "light 1", on: true },
@@ -16,6 +20,16 @@ export class HueService {
   updateLight(options) {
     return
   }
+}
+
+export const effects = [
+  { name: 'none', value: null },
+  { name: 'strobe', value: 'strobe'}
+]
+
+export interface Effect {
+  name: string,
+  value: string
 }
 
 export interface Light {
