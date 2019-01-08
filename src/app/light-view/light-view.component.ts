@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { auditTime } from 'rxjs/operators';
 import { Subject, Subscription } from 'rxjs';
 
+import { ColorConverterService } from '../shared/services/color-converter.service';
 import { effects, Effect, Light, HueService } from '../shared/services/hue.service';
 
 @Component({
@@ -17,12 +18,16 @@ export class LightViewComponent {
   private color$: Subscription;
   private colorSubject: Subject<string>;
 
-  constructor(private hue: HueService, private route: ActivatedRoute) {}
+  constructor(
+    private colorConverter: ColorConverterService,
+    private hue: HueService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit() {
     let lightId = this.route.snapshot.paramMap.get('id')
     this.effects = effects
-    this.hue.getLight(lightId).then(light => this.light = light)
+    this.hue.getLight(lightId).subscribe((light: Light) => this.light = light)
     this.colorSubject = new Subject()
     this.color$ = this.colorSubject.pipe(auditTime(333)).subscribe(color => this.changeColor(color))
   }
@@ -31,9 +36,10 @@ export class LightViewComponent {
     this.color$.unsubscribe()
   }
 
-  togglePower() {
-    this.light.on = !this.light.on
-    this.hue.updateLight({ on: this.light.on })
+  togglePower(on) {
+    this.light.state.on = on
+    this.hue.updateLight(this.light, { on: this.light.state.on })
+      .subscribe((light: Light) => this.light = light)
   }
 
   onColorChange(color: string) {
@@ -41,6 +47,14 @@ export class LightViewComponent {
   }
 
   changeColor(color: string) {
-    console.log (color);
+    var rgb = color.replace(/rgba|rgb|\(|\)/g,'').split(',');
+    var xy = this.colorConverter.calculateXY(rgb[0], rgb[1], rgb[2])
+
+    this.hue.updateLight(this.light, { xy })
+      .subscribe((light: Light) => this.light = light)
+  }
+
+  resetColorPicker() {
+    this.changeColor('rgb(255, 255, 255)')
   }
 }

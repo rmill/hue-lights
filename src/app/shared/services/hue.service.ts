@@ -1,24 +1,30 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable()
 export class HueService {
 
+  constructor(private http: HttpClient) {}
+
   getLight(lightId: string) {
-    return Promise.resolve({ id: '1', name: "light 1", on: true })
+    return this.http.get(`http://127.0.0.1:3000/lights/${lightId}`)
   }
 
+  /**
+   * Get the list of Lights
+   * @return {Observable<Light[]>}
+   */
   getLights() {
-    return Promise.resolve([
-      { id: '1', name: "light 1", on: true },
-      { id: '2', name: "light 2", on: true },
-      { id: '3', name: "light 3", on: true },
-      { id: '4', name: "light 4", on: true },
-      { id: '5', name: "light 5", on: true },
-    ])
+    return this.http.get('http://127.0.0.1:3000/lights')
   }
 
-  updateLight(options) {
-    return
+  /**
+   * Update the state of a light
+   * @param {Light} light The light
+   * @param {Object} state The state update
+   */
+  updateLight(light, state) {
+    return this.http.put(`http://127.0.0.1:3000/lights/${light.id}`, state)
   }
 }
 
@@ -32,8 +38,12 @@ export interface Effect {
   value: string
 }
 
+interface LightState {
+  on: boolean
+}
+
 export interface Light {
   id: string;
   name: string;
-  on: boolean;
+  state: LightState;
 }

@@ -15,12 +15,7 @@ export class LightListComponent {
   constructor(private hue: HueService, private router: Router) {}
 
   ngOnInit() {
-    this.hue.getLights().then(lights => this.lights = lights)
-  }
-
-  togglePower(light: Light) {
-    light.on = !light.on;
-    this.hue.updateLight({ on: light.on })
+    this.hue.getLights().subscribe((lights: Light[]) => this.lights = lights)
   }
 
   viewLight(light: Light) {
