@@ -6,6 +6,7 @@ import { Subject, Subscription } from 'rxjs';
 import { ColorConverterService } from '../shared/services/color-converter.service';
 import { effects, Effect, Light, HueService } from '../shared/services/hue.service';
 
+
 @Component({
   selector: 'hue-lights-view',
   templateUrl: './light-view.component.html',
@@ -17,6 +18,7 @@ export class LightViewComponent {
   private light: Light;
   private color$: Subscription;
   private colorSubject: Subject<string>;
+  private rgb: string;
 
   constructor(
     private colorConverter: ColorConverterService,
@@ -27,7 +29,7 @@ export class LightViewComponent {
   ngOnInit() {
     let lightId = this.route.snapshot.paramMap.get('id')
     this.effects = effects
-    this.hue.getLight(lightId).subscribe((light: Light) => this.light = light)
+    this.hue.getLight(lightId).subscribe((light: Light) => this.setLight(light))
     this.colorSubject = new Subject()
     this.color$ = this.colorSubject.pipe(auditTime(333)).subscribe(color => this.changeColor(color))
   }
@@ -39,7 +41,7 @@ export class LightViewComponent {
   togglePower(on) {
     this.light.state.on = on
     this.hue.updateLight(this.light, { on: this.light.state.on })
-      .subscribe((light: Light) => this.light = light)
+      .subscribe((light: Light) => this.setLight(light))
   }
 
   onColorChange(color: string) {
@@ -48,13 +50,18 @@ export class LightViewComponent {
 
   changeColor(color: string) {
     var rgb = color.replace(/rgba|rgb|\(|\)/g,'').split(',');
-    var xy = this.colorConverter.calculateXY(rgb[0], rgb[1], rgb[2])
+    var xy = this.colorConverter.rgbToXy(rgb[0], rgb[1], rgb[2])
 
     this.hue.updateLight(this.light, { xy })
-      .subscribe((light: Light) => this.light = light)
+      .subscribe((light: Light) => this.setLight(light))
+  }
+
+  setLight(light: Light) {
+    this.light = light;
+    this.rgb = this.colorConverter.getLightColorCss(light)
   }
 
   resetColorPicker() {
-    this.changeColor('rgb(255, 255, 255)')
+    this.changeColor('rgb(255, 207, 120)')
   }
 }

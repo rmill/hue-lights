@@ -1,6 +1,6 @@
 <mat-list>
   <mat-list-item *ngFor="let light of lights" (click)="viewLight(light)">
-    <mat-icon mat-list-icon [class.on]="light.state.on">lightbulb</mat-icon>
+    <mat-icon mat-list-icon [style.color]="getColor(light)">lightbulb</mat-icon>
     <span>{{light.name}}</span>
   </mat-list-item>
 </mat-list>

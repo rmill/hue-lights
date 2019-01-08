@@ -1,6 +1,6 @@
 <div *ngIf="light" class="content">
   <h1>
-    <mat-icon [class.on]="light.state.on">lightbulb</mat-icon>
+    <mat-icon [style.color]="rgb">lightbulb</mat-icon>
     <span>{{light.name}}</span>
   </h1>
   <div>
@@ -8,7 +8,7 @@
   </div>
   <div>
     <input
-      [(colorPicker)]="color"
+      [(colorPicker)]="rgb"
       [cpToggle]="true"
       [cpDialogDisplay]="'inline'"
       [cpOutputFormat]="'rgba'"

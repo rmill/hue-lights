@@ -1,139 +1,111 @@
 import { Injectable } from '@angular/core';
 
-var colorPointsGamut_A = [[0.703, 0.296], [0.214, 0.709], [0.139, 0.081]];
-var colorPointsGamut_B = [[0.674, 0.322], [0.408, 0.517], [0.168, 0.041]];
-var colorPointsGamut_C = [[0.692, 0.308], [0.17, 0.7], [0.153, 0.048]];
-var colorPointsDefault = [[1.0, 0.0], [0.0, 1.0], [0.0, 0.0]];
+import { Light } from './hue.service'
 
-var GAMUT_A_BULBS_LIST = ["LLC001", "LLC005", "LLC006", "LLC007", "LLC010", "LLC011", "LLC012", "LLC014", "LLC013", "LST001"];
-var GAMUT_B_BULBS_LIST = ["LCT001", "LCT002", "LCT003", "LCT004", "LLM001", "LCT005", "LCT006", "LCT007"];
-var GAMUT_C_BULBS_LIST = ["LCT010", "LCT011", "LCT012", "LCT014", "LCT015", "LCT016", "LLC020", "LST002"];
-var MULTI_SOURCE_LUMINAIRES = ["HBL001", "HBL002", "HBL003", "HIL001", "HIL002", "HEL001", "HEL002"];
 
 @Injectable()
 export class ColorConverterService {
 
   /**
-  * Calculate XY color points for a given RGB value.
-  * @param {number} red RGB red value (0-255)
-  * @param {number} green RGB green value (0-255)
-  * @param {number} blue RGB blue value (0-255)
-  * @param {string} model Hue bulb model
-  * @returns {number[]}
-  */
-  calculateXY(red, green, blue, model = null) {
-    red = red / 255;
-    green = green / 255;
-    blue = blue / 255;
-    var r = red > 0.04045 ? Math.pow(((red + 0.055) / 1.055), 2.4000000953674316) : red / 12.92;
-    var g = green > 0.04045 ? Math.pow(((green + 0.055) / 1.055), 2.4000000953674316) : green / 12.92;
-    var b = blue > 0.04045 ? Math.pow(((blue + 0.055) / 1.055), 2.4000000953674316) : blue / 12.92;
-    var x = r * 0.664511 + g * 0.154324 + b * 0.162028;
-    var y = r * 0.283881 + g * 0.668433 + b * 0.047685;
-    var z = r * 8.8E-5 + g * 0.07231 + b * 0.986039;
-    var xy = [x / (x + y + z), y / (x + y + z)];
-    if (isNaN(xy[0])) {
-      xy[0] = 0.0;
-    }
+   * Converts CIE color space to RGB color space
+   * @param {number} x
+   * @param {number} y
+   * @param {number} brightness - Ranges from 1 to 254
+   * @return {Array} Array that contains the color values for red, green and blue
+   */
+  xyToRgb(x, y, brightness) {
+  	// Set to maximum brightness if no custom value was given (Not the slick ECMAScript 6 way for compatibility reasons)
+  	if (brightness === undefined) {
+  		brightness = 254;
+  	}
 
-    if (isNaN(xy[1])) {
-      xy[1] = 0.0;
-    }
+  	var z = 1.0 - x - y;
+  	var Y = parseFloat((brightness / 254).toFixed(2));
+  	var X = (Y / y) * x;
+  	var Z = (Y / y) * z;
 
-    var colorPoints = colorPointsForModel(model);
-    var inReachOfLamps = checkPointInLampsReach(xy, colorPoints);
-    if (!inReachOfLamps) {
-      var pAB = getClosestPointToPoints(colorPoints[0], colorPoints[1], xy);
-      var pAC = getClosestPointToPoints(colorPoints[2], colorPoints[0], xy);
-      var pBC = getClosestPointToPoints(colorPoints[1], colorPoints[2], xy);
-      var dAB = getDistanceBetweenTwoPoints(xy, pAB);
-      var dAC = getDistanceBetweenTwoPoints(xy, pAC);
-      var dBC = getDistanceBetweenTwoPoints(xy, pBC);
-      var lowest = dAB;
-      var closestPoint = pAB;
-      if (dAC < dAB) {
-        lowest = dAC;
-        closestPoint = pAC;
-      }
+  	// Convert to RGB using Wide RGB D65 conversion
+  	var red =  X * 1.656492 - Y * 0.354851 - Z * 0.255038;
+  	var green = -X * 0.707196 + Y * 1.655397 + Z * 0.036152;
+  	var blue =  X * 0.051713 - Y * 0.121364 + Z * 1.011530;
 
-      if (dBC < lowest) {
-        closestPoint = pBC;
-      }
+  	// If red, green or blue is larger than 1.0 set it back to the maximum of 1.0
+  	if (red > blue && red > green && red > 1.0) {
+  		green = green / red;
+  		blue = blue / red;
+  		red = 1.0;
+  	}
+  	else if (green > blue && green > red && green > 1.0) {
+  		red = red / green;
+  		blue = blue / green;
+  		green = 1.0;
+  	}
+  	else if (blue > red && blue > green && blue > 1.0) {
+  		red = red / blue;
+  		green = green / blue;
+  		blue = 1.0;
+  	}
 
-      xy[0] = closestPoint[0];
-      xy[1] = closestPoint[1];
-    }
+  	// Reverse gamma correction
+  	red = red <= 0.0031308 ? 12.92 * red : (1.0 + 0.055) * Math.pow(red, (1.0 / 2.4)) - 0.055;
+  	green = green <= 0.0031308 ? 12.92 * green : (1.0 + 0.055) * Math.pow(green, (1.0 / 2.4)) - 0.055;
+  	blue = blue <= 0.0031308 ? 12.92 * blue : (1.0 + 0.055) * Math.pow(blue, (1.0 / 2.4)) - 0.055;
 
-    xy[0] = precision(xy[0]);
-    xy[1] = precision(xy[1]);
-    return xy;
-  }
-}
+  	// Convert normalized decimal to decimal
+  	red = Math.round(red * 255);
+  	green = Math.round(green * 255);
+  	blue = Math.round(blue * 255);
 
-function colorPointsForModel(model) {
-  if (model == null) {
-    model = " ";
+  	if (isNaN(red)) red = 0;
+
+  	if (isNaN(green)) green = 0;
+
+  	if (isNaN(blue)) blue = 0;
+
+  	return [red, green, blue];
   }
 
-  if (GAMUT_B_BULBS_LIST.indexOf(model) == -1 && MULTI_SOURCE_LUMINAIRES.indexOf(model) == -1) {
-    if(GAMUT_A_BULBS_LIST.indexOf(model) >= 0) {
-      return colorPointsGamut_A;
-    } else if(GAMUT_C_BULBS_LIST.indexOf(model) >= 0) {
-      return colorPointsGamut_C;
-    } else {
-      return colorPointsDefault;
-    }
-  } else {
-    return colorPointsGamut_B;
+  /**
+   * Converts RGB color space to CIE color space
+   * @param {number} red
+   * @param {number} green
+   * @param {number} blue
+   * @return {Array} Array that contains the CIE color values for x and y
+   */
+  rgbToXy(red, green, blue) {
+  	// Apply a gamma correction to the RGB values, which makes the color more vivid and more the like the color displayed on the screen of your device
+  	red = (red > 0.04045) ? Math.pow((red + 0.055) / (1.0 + 0.055), 2.4) : (red / 12.92);
+  	green = (green > 0.04045) ? Math.pow((green + 0.055) / (1.0 + 0.055), 2.4) : (green / 12.92);
+  	blue = (blue > 0.04045) ? Math.pow((blue + 0.055) / (1.0 + 0.055), 2.4) : (blue / 12.92);
+
+  	//RGB values to XYZ using the Wide RGB D65 conversion formula
+  	var X = red * 0.664511 + green * 0.154324 + blue * 0.162028;
+  	var Y = red * 0.283881 + green * 0.668433 + blue * 0.047685;
+  	var Z = red * 0.000088 + green * 0.072310 + blue * 0.986039;
+
+  	//Calculate the xy values from the XYZ values
+  	var x = parseFloat((X / (X + Y + Z)).toFixed(4));
+  	var y = parseFloat((Y / (X + Y + Z)).toFixed(4));
+
+  	if (isNaN(x)) x = 0;
+
+  	if (isNaN(y)) y = 0;
+
+  	return [x, y];
   }
-}
 
-function checkPointInLampsReach(point, colorPoints) {
-  if (point != null && colorPoints != null) {
-    var red = colorPoints[0];
-    var green = colorPoints[1];
-    var blue = colorPoints[2];
-    var v1 = [green[0] - red[0], green[1] - red[1]];
-    var v2 = [blue[0] - red[0], blue[1] - red[1]];
-    var q = [point[0] - red[0], point[1] - red[1]];
-    var s = crossProduct(q, v2) / crossProduct(v1, v2);
-    var t = crossProduct(v1, q) / crossProduct(v1, v2);
-    return s >= 0.0 && t >= 0.0 && s + t <= 1.0;
-  } else {
-    return false;
-  }
-}
+  /**
+   * Get the Css color property for a Light
+   * @param {Light} light
+   * @return {string} The Css color property
+   */
+  getLightColorCss(light: Light) {
+    let rgb = [0, 0, 0]
 
-function crossProduct(point1, point2) {
-  return point1[0] * point2[1] - point1[1] * point2[0];
-}
-
-function getClosestPointToPoints(pointA, pointB, pointP) {
-  if (pointA != null && pointB != null && pointP != null) {
-    var pointAP = [pointP[0] - pointA[0], pointP[1] - pointA[1]];
-    var pointAB = [pointB[0] - pointA[0], pointB[1] - pointA[1]];
-    var ab2 = pointAB[0] * pointAB[0] + pointAB[1] * pointAB[1];
-    var apAb = pointAP[0] * pointAB[0] + pointAP[1] * pointAB[1];
-    var t = apAb / ab2;
-    if(t < 0.0) {
-      t = 0.0;
-    } else if(t > 1.0) {
-      t = 1.0;
+    if (light.state.on && light.state.reachable) {
+      rgb = this.xyToRgb(light.state.xy[0], light.state.xy[1], light.state.bri)
     }
 
-    return [pointA[0] + pointAB[0] * t, pointA[1] + pointAB[1] * t];
-  } else {
-    return null;
+    return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`
   }
-}
-
-function getDistanceBetweenTwoPoints(pointA, pointB) {
-  var dx = pointA[0] - pointB[0];
-  var dy = pointA[1] - pointB[1];
-  var dist = Math.sqrt(dx * dx + dy * dy);
-  return dist;
-}
-
-function precision(d) {
-  return Math.round(10000.0 * d) / 10000.0;
 }

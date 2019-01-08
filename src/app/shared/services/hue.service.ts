@@ -39,7 +39,10 @@ export interface Effect {
 }
 
 interface LightState {
-  on: boolean
+  bri: number;
+  on: boolean;
+  reachable: boolean;
+  xy: [number, number];
 }
 
 export interface Light {
