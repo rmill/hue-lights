@@ -26,6 +26,10 @@ export class HueService {
   updateLight(light, state) {
     return this.http.put(`http://127.0.0.1:3000/lights/${light.id}`, state)
   }
+
+  getLightIcon(light: Light) {
+    return light.state.reachable ? 'lightbulb' : 'highlight_off' 
+  }
 }
 
 export const effects = [

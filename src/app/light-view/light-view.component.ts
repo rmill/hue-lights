@@ -19,6 +19,7 @@ export class LightViewComponent {
   private color$: Subscription;
   private colorSubject: Subject<string>;
   private rgb: string;
+  private icon: string;
 
   constructor(
     private colorConverter: ColorConverterService,
@@ -59,6 +60,7 @@ export class LightViewComponent {
   setLight(light: Light) {
     this.light = light;
     this.rgb = this.colorConverter.getLightColorCss(light)
+    this.icon = this.hue.getLightIcon(light)
   }
 
   resetColorPicker() {

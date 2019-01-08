@@ -23,6 +23,10 @@ export class LightListComponent {
     return this.color.getLightColorCss(light)
   }
 
+  getIcon(light: Light) {
+    return this.hue.getLightIcon(light)
+  }
+
   viewLight(light: Light) {
     this.router.navigate([`lights/${light.id}`])
   }
