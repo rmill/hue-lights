@@ -11,7 +11,7 @@ import { Light, HueService } from '../shared/services/hue.service'
 })
 export class LightListComponent {
 
-  private lights: Light[];
+  lights: Light[];
 
   constructor(private color: ColorConverterService, private hue: HueService, private router: Router) {}
 

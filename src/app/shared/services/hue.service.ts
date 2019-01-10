@@ -1,13 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
+import { environment } from '../../../environments/environment'
+
 @Injectable()
 export class HueService {
 
   constructor(private http: HttpClient) {}
 
   getLight(lightId: string) {
-    return this.http.get(`http://127.0.0.1:3000/lights/${lightId}`)
+    return this.http.get(`${environment.api_url}/lights/${lightId}`)
   }
 
   /**
@@ -15,7 +17,7 @@ export class HueService {
    * @return {Observable<Light[]>}
    */
   getLights() {
-    return this.http.get('http://127.0.0.1:3000/lights')
+    return this.http.get(`${environment.api_url}/lights`)
   }
 
   /**
@@ -24,11 +26,11 @@ export class HueService {
    * @param {Object} state The state update
    */
   updateLight(light, state) {
-    return this.http.put(`http://127.0.0.1:3000/lights/${light.id}`, state)
+    return this.http.put(`${environment.api_url}/${light.id}`, state)
   }
 
   getLightIcon(light: Light) {
-    return light.state.reachable ? 'lightbulb' : 'highlight_off' 
+    return light.state.reachable ? 'lightbulb' : 'highlight_off'
   }
 }
 

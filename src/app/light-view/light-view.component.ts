@@ -14,8 +14,9 @@ import { effects, Effect, Light, HueService } from '../shared/services/hue.servi
 })
 export class LightViewComponent {
 
+  light: Light;
+
   private effects: Effect[];
-  private light: Light;
   private color$: Subscription;
   private colorSubject: Subject<string>;
   private rgb: string;
