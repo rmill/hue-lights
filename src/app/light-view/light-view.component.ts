@@ -1,10 +1,10 @@
-import { Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { auditTime } from 'rxjs/operators';
-import { Subject, Subscription } from 'rxjs';
+import { Component } from '@angular/core'
+import { ActivatedRoute } from '@angular/router'
+import { auditTime } from 'rxjs/operators'
+import { Subject, Subscription } from 'rxjs'
 
-import { ColorConverterService } from '../shared/services/color-converter.service';
-import { Effect, Light, HueService } from '../shared/services/hue.service';
+import { ColorConverterService } from '../shared/services/color-converter.service'
+import { Effect, Light, HueService } from '../shared/services/hue.service'
 
 
 @Component({
@@ -14,13 +14,14 @@ import { Effect, Light, HueService } from '../shared/services/hue.service';
 })
 export class LightViewComponent {
 
-  light: Light;
+  light: Light
 
-  private effects: Effect[];
-  private color$: Subscription;
-  private colorSubject: Subject<string>;
-  private rgb: string;
-  private icon: string;
+  private effects: Object
+  private color$: Subscription
+  private colorSubject: Subject<string>
+  private rgb: string
+  private icon: string
+  private lights$: Subscription
 
   constructor(
     private colorConverter: ColorConverterService,
@@ -30,14 +31,15 @@ export class LightViewComponent {
 
   ngOnInit() {
     let lightId = this.route.snapshot.paramMap.get('id')
-    this.hue.getEffects().subscribe((effects: Effect[]) => this.effects = effects)
-    this.hue.getLight(lightId).subscribe((light: Light) => this.setLight(light))
+    this.hue.effects.subscribe((effects: Object) => this.effects = effects)
     this.colorSubject = new Subject()
     this.color$ = this.colorSubject.pipe(auditTime(333)).subscribe(color => this.changeColor(color))
+    this.lights$ = this.hue.getLight(lightId).subscribe((light: Light) => this.setLight(light))
   }
 
   ngOnDestory() {
     this.color$.unsubscribe()
+    this.lights$.unsubscribe()
   }
 
   togglePower(on) {
@@ -56,7 +58,7 @@ export class LightViewComponent {
   }
 
   changeColor(color: string) {
-    var rgb = color.replace(/rgba|rgb|\(|\)/g,'').split(',');
+    var rgb = color.replace(/rgba|rgb|\(|\)/g,'').split(',')
     var xy = this.colorConverter.rgbToXy(rgb[0], rgb[1], rgb[2])
 
     this.hue.updateLight(this.light, { xy })
@@ -64,7 +66,7 @@ export class LightViewComponent {
   }
 
   setLight(light: Light) {
-    this.light = light;
+    this.light = light
     this.rgb = this.colorConverter.getLightColorCss(light)
     this.icon = this.hue.getLightIcon(light)
   }

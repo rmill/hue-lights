@@ -1,5 +1,6 @@
 import { Component } from '@angular/core'
 import { Router } from '@angular/router'
+import { Subscription } from 'rxjs';
 
 import { ColorConverterService } from '../shared/services/color-converter.service'
 import { Light, HueService } from '../shared/services/hue.service'
@@ -13,10 +14,16 @@ export class LightListComponent {
 
   lights: Light[];
 
+  private lights$: Subscription
+
   constructor(private color: ColorConverterService, private hue: HueService, private router: Router) {}
 
   ngOnInit() {
-    this.hue.getLights().subscribe((lights: Light[]) => this.lights = lights)
+    this.lights$ = this.hue.lights.subscribe((lights: Light[]) => this.lights = lights)
+  }
+
+  ngOnDestroy() {
+    this.lights$.unsubscribe()
   }
 
   getColor(light: Light) {

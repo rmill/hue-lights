@@ -1,16 +1,31 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
+import { BehaviorSubject, empty, Observable, of, interval } from 'rxjs';
+import { mergeMap } from 'rxjs/operators'
+
 import { environment } from '../../../environments/environment'
 
 @Injectable()
 export class HueService {
 
-  constructor(private http: HttpClient) {}
+  public lights: BehaviorSubject<Light[]>
+  public effects: BehaviorSubject<Object>
+
+  constructor(private http: HttpClient) {
+    this.lights = new BehaviorSubject([])
+    this.effects = new BehaviorSubject({})
+
+    this.getEffects().subscribe(effects => this.effects.next(effects))
+
+    // Poll the lights every second
+    interval(1000).pipe(mergeMap(() => this.getLights()))
+      .subscribe((lights: Light[]) => this.lights.next(lights))
+  }
 
   /**
    * Get the list of Light effects
-   * @return {Observable<Light[]>}
+   * @return {Observable<Object>}
    */
   getEffects() {
     return this.http.get(`${environment.api_url}/effects`)
@@ -22,7 +37,7 @@ export class HueService {
    * @return {Observable<Light>}
    */
   getLight(lightId: string) {
-    return this.http.get(`${environment.api_url}/lights/${lightId}`)
+    return this.lights.asObservable().pipe(mergeMap(lights => _getLight(lights, lightId)))
   }
 
   /**
@@ -39,12 +54,12 @@ export class HueService {
    * @param {Object} state The state update
    */
   updateLight(light: Light, state) {
-    return this.http.put(`${environment.api_url}/${light.id}`, state)
+    return this.http.put(`${environment.api_url}/lights/${light.id}`, state)
   }
 
   setLightEffect(light: Light, effect: string) {
     let data = { name: effect }
-    return this.http.post(`${environment.api_url}/${light.id}/effect`, data)
+    return this.http.post(`${environment.api_url}/lights/${light.id}/effect`, data)
   }
 
   /**
@@ -55,6 +70,14 @@ export class HueService {
   getLightIcon(light: Light) {
     return light.state.reachable ? 'lightbulb' : 'highlight_off'
   }
+}
+
+function _getLight(lights, id) {
+  for (let light of lights) {
+    if (light.id == id) return of(light)
+  }
+
+  return empty()
 }
 
 export interface Effect {
