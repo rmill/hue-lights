@@ -4,7 +4,7 @@ import { auditTime } from 'rxjs/operators';
 import { Subject, Subscription } from 'rxjs';
 
 import { ColorConverterService } from '../shared/services/color-converter.service';
-import { effects, Effect, Light, HueService } from '../shared/services/hue.service';
+import { Effect, Light, HueService } from '../shared/services/hue.service';
 
 
 @Component({
@@ -30,7 +30,7 @@ export class LightViewComponent {
 
   ngOnInit() {
     let lightId = this.route.snapshot.paramMap.get('id')
-    this.effects = effects
+    this.hue.getEffects().subscribe((effects: Effect[]) => this.effects = effects)
     this.hue.getLight(lightId).subscribe((light: Light) => this.setLight(light))
     this.colorSubject = new Subject()
     this.color$ = this.colorSubject.pipe(auditTime(333)).subscribe(color => this.changeColor(color))
@@ -48,6 +48,11 @@ export class LightViewComponent {
 
   onColorChange(color: string) {
     this.colorSubject.next(color)
+  }
+
+  onEffectChange(effect: string) {
+    this.hue.setLightEffect(this.light, effect)
+      .subscribe((light: Light) => this.setLight(light))
   }
 
   changeColor(color: string) {

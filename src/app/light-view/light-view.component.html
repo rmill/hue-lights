@@ -19,7 +19,8 @@
     </div>
     <div>
       <mat-form-field>
-        <mat-select placeholder="Select effect">
+        <mat-select (selectionChange)="onEffectChange($event.value)" placeholder="Select effect">
+          <mat-option [value]="null">None</mat-option>
           <mat-option *ngFor="let effect of effects" [value]="effect.value">
             {{effect.name}}
           </mat-option>
