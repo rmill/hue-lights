@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { BehaviorSubject, empty, Observable, of, interval } from 'rxjs';
-import { mergeMap } from 'rxjs/operators'
+import { BehaviorSubject, empty, of, interval } from 'rxjs';
+import { catchError, mergeMap } from 'rxjs/operators'
 
 import { environment } from '../../../environments/environment'
 
@@ -11,6 +11,7 @@ export class HueService {
 
   public lights: BehaviorSubject<Light[]>
   public effects: BehaviorSubject<Object>
+  public connected: boolean
 
   constructor(private http: HttpClient) {
     this.lights = new BehaviorSubject([])
@@ -19,8 +20,18 @@ export class HueService {
     this.getEffects().subscribe(effects => this.effects.next(effects))
 
     // Poll the lights every second
-    interval(1000).pipe(mergeMap(() => this.getLights()))
-      .subscribe((lights: Light[]) => this.lights.next(lights))
+    interval(1000).pipe(
+      mergeMap(() => this.getLights().pipe(
+        catchError(() => {
+          this.connected = false
+          return empty()
+        })
+      ))
+    )
+    .subscribe((lights: Light[]) => {
+      this.connected = true
+      this.lights.next(lights)
+    })
   }
 
   /**

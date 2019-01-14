@@ -1,5 +1,6 @@
 <mat-toolbar>
     <mat-icon *ngIf="showBack()" (click)="onBackClick()">keyboard_arrow_left</mat-icon>
-    <span>My Application</span>
+    <span>Kozmik Lights</span>
 </mat-toolbar>
+<div *ngIf="noConnection()">Cannot connect to server. Retrying...</div>
 <router-outlet></router-outlet>

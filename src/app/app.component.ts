@@ -1,6 +1,8 @@
 import { Component } from '@angular/core'
 import { Router } from '@angular/router'
 
+import { HueService } from './shared/services/hue.service'
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -8,7 +10,7 @@ import { Router } from '@angular/router'
 })
 export class AppComponent {
 
-  constructor(private router: Router) {}
+  constructor(private hue: HueService, private router: Router) {}
 
   onBackClick() {
     this.router.navigateByUrl('/lights');
@@ -16,5 +18,9 @@ export class AppComponent {
 
   showBack() {
     return this.router.url !== '/lights'
+  }
+
+  noConnection() {
+    return !this.hue.connected
   }
 }
