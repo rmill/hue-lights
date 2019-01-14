@@ -57,6 +57,12 @@ export class HueService {
     return this.http.put(`${environment.api_url}/lights/${light.id}`, state)
   }
 
+  /**
+   * Set the effect for the Light
+   * @param {Light} light The light
+   * @param {string} effect The name of the effect to set
+   * @return {Observable<Light>}
+   */
   setLightEffect(light: Light, effect: string) {
     let data = { name: effect }
     return this.http.post(`${environment.api_url}/lights/${light.id}/effect`, data)
@@ -81,8 +87,9 @@ function _getLight(lights, id) {
 }
 
 export interface Effect {
-  name: string,
-  value: string
+  id: string;
+  name: string;
+  value: string;
 }
 
 interface LightState {
@@ -93,6 +100,7 @@ interface LightState {
 }
 
 export interface Light {
+  event: Effect;
   id: string;
   name: string;
   state: LightState;

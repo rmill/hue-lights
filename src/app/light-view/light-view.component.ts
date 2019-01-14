@@ -15,6 +15,7 @@ import { Effect, Light, HueService } from '../shared/services/hue.service'
 export class LightViewComponent {
 
   light: Light
+  effect: string
 
   private effects: Object
   private color$: Subscription
@@ -69,6 +70,7 @@ export class LightViewComponent {
     this.light = light
     this.rgb = this.colorConverter.getLightColorCss(light)
     this.icon = this.hue.getLightIcon(light)
+    this.effect = light.event ? light.event.name : null
   }
 
   resetColorPicker() {
