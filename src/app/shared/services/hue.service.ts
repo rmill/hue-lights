@@ -11,7 +11,7 @@ export class HueService {
 
   public lights: BehaviorSubject<Light[]>
   public effects: BehaviorSubject<Object>
-  public connected: boolean
+  public connected: boolean = true
 
   constructor(private http: HttpClient) {
     this.lights = new BehaviorSubject([])
